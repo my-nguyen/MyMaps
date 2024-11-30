@@ -1,6 +1,8 @@
 package com.nguyen.mymaps
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -9,6 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.nguyen.mymaps.databinding.ActivityMainBinding
 import com.nguyen.mymaps.models.Place
 import com.nguyen.mymaps.models.UserMap
+
+private const val TAG = "MainActivity"
+const val EXTRA_USER_MAP = "EXTRA_USER_MAP"
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +28,14 @@ class MainActivity : AppCompatActivity() {
         }
         val userMaps = generateSampleData()
         binding.maps.layoutManager = LinearLayoutManager(this)
-        binding.maps.adapter = MapsAdapter(userMaps)
+        binding.maps.adapter = MapsAdapter(userMaps, object : MapsAdapter.OnClickListener {
+            override fun onItemClick(position: Int) {
+                Log.i(TAG, "onItemClick $position")
+                val intent = Intent(this@MainActivity, DisplayMapActivity::class.java)
+                intent.putExtra(EXTRA_USER_MAP, userMaps[position])
+                startActivity(intent)
+            }
+        })
     }
 
     private fun generateSampleData(): List<UserMap> {

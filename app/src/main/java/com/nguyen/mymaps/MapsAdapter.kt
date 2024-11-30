@@ -1,5 +1,6 @@
 package com.nguyen.mymaps
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,10 +8,21 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.nguyen.mymaps.models.UserMap
 
-class MapsAdapter(val userMaps: List<UserMap>) : RecyclerView.Adapter<MapsAdapter.ViewHolder>() {
-    class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+private const val TAG = "MapsAdapter"
+
+class MapsAdapter(val userMaps: List<UserMap>, val listener: OnClickListener) : RecyclerView.Adapter<MapsAdapter.ViewHolder>() {
+    interface OnClickListener {
+        fun onItemClick(position: Int)
+    }
+
+    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         fun bind(map: UserMap) {
             view.findViewById<TextView>(android.R.id.text1).text = map.title
+
+            view.setOnClickListener {
+                Log.i(TAG, "Tapped on position $adapterPosition")
+                listener.onItemClick(adapterPosition)
+            }
         }
     }
 
