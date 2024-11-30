@@ -1,5 +1,6 @@
 package com.nguyen.mymaps
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +15,8 @@ import com.nguyen.mymaps.models.UserMap
 
 private const val TAG = "MainActivity"
 const val EXTRA_USER_MAP = "EXTRA_USER_MAP"
+const val EXTRA_MAP_TITLE = "EXTRA_MAP_TITLE"
+const val RC_CREATE_MAPS = 1234
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +39,18 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         })
+
+        binding.fab.setOnClickListener {
+            Log.i(TAG, "Tap on FAB")
+            val intent = Intent(this@MainActivity, CreateMapsActivity::class.java)
+            intent.putExtra(EXTRA_MAP_TITLE, "new map name")
+            startActivityForResult(intent, RC_CREATE_MAPS)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == RC_CREATE_MAPS && resultCode == Activity.RESULT_OK)
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun generateSampleData(): List<UserMap> {
