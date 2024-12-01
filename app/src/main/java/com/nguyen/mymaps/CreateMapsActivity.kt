@@ -1,10 +1,14 @@
 package com.nguyen.mymaps
 
+import android.app.Activity
 import android.content.DialogInterface
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -19,6 +23,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.nguyen.mymaps.databinding.ActivityCreateMapsBinding
 import com.nguyen.mymaps.databinding.DialogCreatePlaceBinding
+import com.nguyen.mymaps.models.Place
+import com.nguyen.mymaps.models.UserMap
 
 private const val TAG = "CreateMapsActivity"
 
@@ -47,14 +53,33 @@ class CreateMapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_create_map, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.menu_save) {
+            Log.i(TAG, "Tapped on SAVE")
+            if (markers.isEmpty()) {
+                Toast.makeText(this, "There must be at least one marker", Toast.LENGTH_LONG).show()
+                return true
+            }
+            val title = intent.getStringExtra(EXTRA_MAP_TITLE)!!
+            val places = markers.map { Place(it.title!!, it.snippet!!, it.position.latitude, it.position.longitude) }
+            val userMap = UserMap(title, places)
+            val data = Intent()
+            data.putExtra(EXTRA_USER_MAP, userMap)
+            setResult(Activity.RESULT_OK, data)
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -70,10 +95,10 @@ class CreateMapsActivity : AppCompatActivity(), OnMapReadyCallback {
             showAlertDialog(it)
 
         }
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        // Add a marker in Silicon Valley and move the camera
+        val siliconValley = LatLng(37.4, -122.1)
+        // Zoom levels: 1=World; 5=Landmass/continent; 10=City; 15=Streets; 20=Buildings
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(siliconValley, 10f))
     }
 
     private fun showAlertDialog(latlng: LatLng) {

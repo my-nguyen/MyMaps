@@ -1,24 +1,36 @@
 package com.nguyen.mymaps
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.nguyen.mymaps.databinding.ActivityMainBinding
+import com.nguyen.mymaps.databinding.DialogCreateMapBinding
+import com.nguyen.mymaps.databinding.DialogCreatePlaceBinding
 import com.nguyen.mymaps.models.Place
 import com.nguyen.mymaps.models.UserMap
 
-private const val TAG = "MainActivity"
+private const val TAG = "Truong-MainActivity"
 const val EXTRA_USER_MAP = "EXTRA_USER_MAP"
 const val EXTRA_MAP_TITLE = "EXTRA_MAP_TITLE"
 const val RC_CREATE_MAPS = 1234
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var userMaps: MutableList<UserMap>
+    private lateinit var adapter: MapsAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -29,9 +41,9 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val userMaps = generateSampleData()
-        binding.maps.layoutManager = LinearLayoutManager(this)
-        binding.maps.adapter = MapsAdapter(userMaps, object : MapsAdapter.OnClickListener {
+
+        userMaps = generateSampleData().toMutableList()
+        adapter = MapsAdapter(userMaps, object : MapsAdapter.OnClickListener {
             override fun onItemClick(position: Int) {
                 Log.i(TAG, "onItemClick $position")
                 val intent = Intent(this@MainActivity, DisplayMapActivity::class.java)
@@ -40,16 +52,22 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        binding.maps.adapter = adapter
+        binding.maps.layoutManager = LinearLayoutManager(this)
+
         binding.fab.setOnClickListener {
             Log.i(TAG, "Tap on FAB")
-            val intent = Intent(this@MainActivity, CreateMapsActivity::class.java)
-            intent.putExtra(EXTRA_MAP_TITLE, "new map name")
-            startActivityForResult(intent, RC_CREATE_MAPS)
+            showAlertDialog()
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == RC_CREATE_MAPS && resultCode == Activity.RESULT_OK)
+        if (requestCode == RC_CREATE_MAPS && resultCode == Activity.RESULT_OK) {
+            val userMap = data?.getSerializableExtra(EXTRA_USER_MAP) as UserMap
+            Log.i(TAG, "onActivityResult with new map title ${userMap.title}")
+            userMaps.add(userMap)
+            adapter.notifyItemInserted(userMaps.lastIndex)
+        }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
@@ -96,5 +114,28 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         )
+    }
+
+    private fun showAlertDialog() {
+        val binding = DialogCreateMapBinding.inflate(LayoutInflater.from(this))
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Map title")
+            .setView(binding.root)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("OK", null)
+            .show()
+
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+            val title = binding.title.text.toString().trim()
+            if (title.isEmpty()) {
+                Toast.makeText(this, "Map must have non-empty title", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
+            val intent = Intent(this@MainActivity, CreateMapsActivity::class.java)
+            intent.putExtra(EXTRA_MAP_TITLE, title)
+            startActivityForResult(intent, RC_CREATE_MAPS)
+            dialog.dismiss()
+        }
     }
 }
