@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.nguyen.mymaps.databinding.ItemUserMapBinding
 import com.nguyen.mymaps.models.UserMap
 
 private const val TAG = "MapsAdapter"
@@ -15,11 +16,10 @@ class MapsAdapter(val userMaps: List<UserMap>, val listener: OnClickListener) : 
         fun onItemClick(position: Int)
     }
 
-    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+    inner class ViewHolder(val binding: ItemUserMapBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(map: UserMap) {
-            view.findViewById<TextView>(android.R.id.text1).text = map.title
-
-            view.setOnClickListener {
+            binding.title.text = map.title
+            binding.title.setOnClickListener {
                 Log.i(TAG, "Tapped on position $adapterPosition")
                 listener.onItemClick(adapterPosition)
             }
@@ -28,8 +28,8 @@ class MapsAdapter(val userMaps: List<UserMap>, val listener: OnClickListener) : 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(android.R.layout.simple_list_item_1, parent, false)
-        return ViewHolder(view)
+        val binding = ItemUserMapBinding.inflate(inflater, parent, false)
+        return ViewHolder(binding)
     }
 
     override fun getItemCount() = userMaps.size
